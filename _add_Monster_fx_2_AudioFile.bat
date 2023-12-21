@@ -24,6 +24,7 @@ title just for fun£ºadd monster fx 2 audio file
 
 set /p "DELAY=DELAY  - if not defined will set DELAY to -123(ms):"
 if not defined DELAY set DELAY=-123
+set delayed=!DELAY!
 set /a DELAY=!DELAY!+!ReverbTail!
 set /p "inputAudio=inputAudio:"
 :: set loudness
@@ -71,7 +72,7 @@ if defined chnNum (
     ffmpeg -i "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura!" "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!"
     ffmpeg -i "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" -i "%~dp0!IRFile!" -filter_complex "[0:a]adelay=!RevTlParams![a0];[a0][1:a]afir=dry=!revesDry!:wet=!revesWet!,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!"
     ffmpeg -i "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" -af areverse "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" -i "!inputAudio!" -filter_complex "[0:a]volume=!finalWet![a0]; [1:a]adelay=!delayParams!,volume=!finalDry![a1]; [a0][a1]amix=inputs=2:duration=longest,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" -y "!inputAudio:~0,-4!_Final!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" & del "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!"
+    ffmpeg -i "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" -i "!inputAudio!" -filter_complex "[0:a]volume=!finalWet![a0]; [1:a]adelay=!delayParams!,volume=!finalDry![a1]; [a0][a1]amix=inputs=2:duration=longest,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" -y "!inputAudio:~0,-4!_FX_!delayed!!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" & del "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!"
     del "%~dp0IR_temp.wav" 2>nul
 ) else (
     echo Unknow Channel Number :%layoutName%-"!inputAudio!"
