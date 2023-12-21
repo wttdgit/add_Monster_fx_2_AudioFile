@@ -76,4 +76,5 @@ if defined chnNum (
 ) else (
     echo Unknow Channel Number :%layoutName%-"!inputAudio!"
 )
+endlocal
 goto R
