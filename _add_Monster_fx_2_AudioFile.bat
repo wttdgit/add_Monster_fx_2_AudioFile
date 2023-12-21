@@ -22,8 +22,8 @@ set revesWet=9 & set revesDry=1
 set finalWet=0.5 & set finalDry=0.5
 title just for fun£ºadd monster fx 2 audio file
 
-set /p "DELAY=DELAY  - if not defined will set DELAY=0:"
-if not defined DELAY set DELAY=0
+set /p "DELAY=DELAY  - if not defined will set DELAY to -123(ms):"
+if not defined DELAY set DELAY=-123
 set /a DELAY=!DELAY!+!ReverbTail!
 set /p "inputAudio=inputAudio:"
 :: set loudness
