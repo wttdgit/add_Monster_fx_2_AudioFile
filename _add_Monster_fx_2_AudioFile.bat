@@ -41,9 +41,9 @@ for /f "delims=" %%a in ('%ffmpeg% -i "!inputAudio!" -filter:a loudnorm^=print_f
         )
     )
 )
-echo "Integrated Loudness (I):!I!"
-echo "Loudness Range (LRA):!LRA!"
-echo "True Peak (TP):!TP!"
+echo Integrated Loudness (I):!I!
+echo Loudness Range (LRA):!LRA!
+echo True Peak (TP):!TP!
 for /f "tokens=3 delims=," %%a in ('%ffmpeg% -i "!inputAudio!" 2^>^&1 ^| findstr ^/ic^:"Stream #0:0"') do (
     set "layoutName=%%a"
     set "layoutName=!layoutName: =!"
@@ -51,7 +51,7 @@ for /f "tokens=3 delims=," %%a in ('%ffmpeg% -i "!inputAudio!" 2^>^&1 ^| findstr
 call set "chnNum=%%layout_!layoutName!%%"
 REM set "chnNum=!layout_%layoutName%!"
 if defined chnNum (
-    echo chnNum:"!chnNum!"
+    echo chnNum:!chnNum! - !layoutName!
     if "!chnNum!"=="2" (
         set "IRFile=IR.wav"
     ) else (
@@ -77,7 +77,6 @@ if defined chnNum (
 ) else (
     echo Unknow Channel Number :%layoutName%-"!inputAudio!"
 )
-echo.
 echo DONE£¡ - output£º"!inputAudio:~0,-4!_FX_!delayed!!inputAudio:~-4!"
 echo.
 endlocal
