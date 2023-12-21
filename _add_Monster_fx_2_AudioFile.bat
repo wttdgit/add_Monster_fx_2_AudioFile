@@ -28,7 +28,7 @@ set delayed=!DELAY!
 set /a DELAY=!DELAY!+!ReverbTail!
 set /p "inputAudio=inputAudio:"
 :: set loudness
-for /f "delims=" %%a in ('ffmpeg -i "!inputAudio!" -filter:a loudnorm^=print_format^=json -f null - 2^>^&1') do (
+for /f "delims=" %%a in ('%ffmpeg% -i "!inputAudio!" -filter:a loudnorm^=print_format^=json -f null - 2^>^&1') do (
     for /f "tokens=1,2 delims=,:	 " %%b in ("%%~a") do (
         REM ECHO [%%~b:%%~c]
         if "%%~b"=="input_i" (
@@ -44,7 +44,7 @@ for /f "delims=" %%a in ('ffmpeg -i "!inputAudio!" -filter:a loudnorm^=print_for
 echo "Integrated Loudness (I):!I!"
 echo "Loudness Range (LRA):!LRA!"
 echo "True Peak (TP):!TP!"
-for /f "tokens=3 delims=," %%a in ('ffmpeg -i "!inputAudio!" 2^>^&1 ^| findstr ^/ic^:"Stream #0:0"') do (
+for /f "tokens=3 delims=," %%a in ('%ffmpeg% -i "!inputAudio!" 2^>^&1 ^| findstr ^/ic^:"Stream #0:0"') do (
     set "layoutName=%%a"
     set "layoutName=!layoutName: =!"
 )
@@ -55,7 +55,7 @@ if defined chnNum (
     if "!chnNum!"=="2" (
         set "IRFile=IR.wav"
     ) else (
-        ffmpeg -i IR.wav -ac !chnNum! IR_temp.wav
+        %ffmpeg% -loglevel error -i IR.wav -ac !chnNum! IR_temp.wav
         set "IRFile=IR_temp.wav"
     )
     :: set delay parameter
@@ -66,16 +66,19 @@ if defined chnNum (
         set "RevTlParams=!RevTlParams!!ReverbTail!|"
     )
     set "delayParams=!delayParams:~0,-1!"
-    ffmpeg -i "!inputAudio!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura!" "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!" -i "%~dp0!IRFile!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura![a0];[a0][1:a]afir=dry=!inputDry!:wet=!inputWet!,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio!" -af "areverse" "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura!" "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" -i "%~dp0!IRFile!" -filter_complex "[0:a]adelay=!RevTlParams![a0];[a0][1:a]afir=dry=!revesDry!:wet=!revesWet!,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" -af areverse "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!"
-    ffmpeg -i "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" -i "!inputAudio!" -filter_complex "[0:a]volume=!finalWet![a0]; [1:a]adelay=!delayParams!,volume=!finalDry![a1]; [a0][a1]amix=inputs=2:duration=longest,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" -y "!inputAudio:~0,-4!_FX_!delayed!!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" & del "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura!" "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!" -i "%~dp0!IRFile!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura![a0];[a0][1:a]afir=dry=!inputDry!:wet=!inputWet!,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Input_AddSlDura!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio!" -af "areverse" "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!" -filter_complex "[0:a]apad=pad_dur=!RvsSlDura!" "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reverse!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!" -i "%~dp0!IRFile!" -filter_complex "[0:a]adelay=!RevTlParams![a0];[a0][1:a]afir=dry=!revesDry!:wet=!revesWet!,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!" -af areverse "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb!inputAudio:~-4!"
+    %ffmpeg% -loglevel error -i "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" -i "!inputAudio!" -filter_complex "[0:a]volume=!finalWet![a0]; [1:a]adelay=!delayParams!,volume=!finalDry![a1]; [a0][a1]amix=inputs=2:duration=longest,loudnorm=I=!I!:LRA=!LRA!:TP=!TP!" -y "!inputAudio:~0,-4!_FX_!delayed!!inputAudio:~-4!" && del "!inputAudio:~0,-4!_Reversed_Reverb_Reversed!inputAudio:~-4!" & del "!inputAudio:~0,-4!_Input_AddSlDura_Reverb!inputAudio:~-4!"
     del "%~dp0IR_temp.wav" 2>nul
 ) else (
     echo Unknow Channel Number :%layoutName%-"!inputAudio!"
 )
+echo.
+echo DONE£¡ - output£º"!inputAudio:~0,-4!_FX_!delayed!!inputAudio:~-4!"
+echo.
 endlocal
 goto R
